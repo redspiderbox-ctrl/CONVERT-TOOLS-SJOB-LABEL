@@ -1,1623 +1,562 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>DASHBOARD - Districk KUPANG</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <style>
-    body { 
-      margin:0; 
-      font-family:Arial, sans-serif; 
-      background:#f4f6f9;
-      padding-top: 80px; /* Memberi ruang untuk header fixed */
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Convert Tools - POLYTRON KUPANG (SJOB LABEL)</title>
+
+<!-- Library Eksternal -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+<style>
+    :root {
+        /* --- WARNA SESUAI LOGO (POLYTRON RED) --- */
+        --primary-color: #d32f2f; 
+        --primary-hover: #b71c1c;
+        --danger-color: #dc2626;
+        --danger-hover: #991b1b;
+        
+        --bg-color: #f3f4f6;
+        --surface-color: #ffffff;
+        --text-color: #1f2937;
+        --border-color: #cbd5e1;
+        --guide-line: #374151; 
     }
-    header {
-      background:#c60000; 
-      color:#fff; 
-      padding:15px 20px;
-      text-align:center; 
-      font-size:20px; 
-      font-weight:bold;
-      display:flex; 
-      align-items:center; 
-      justify-content:space-between; /* Mengubah justify-content */
-      position: fixed; /* Membuat header tetap di atas */
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 1000; /* Memastikan header di atas elemen lain */
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2); /* Menambahkan bayangan untuk efek floating */
+
+    * { box-sizing: border-box; }
+
+    body {
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background-color: var(--bg-color);
+        margin: 0;
+        padding: 20px;
+        color: var(--text-color);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
     }
-    .header-left {
-      display: flex;
-      align-items: center;
+
+    /* --- CONTROLS & HEADER --- */
+    .controls {
+        background: var(--surface-color);
+        padding: 40px 30px;
+        border-radius: 12px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+        width: 100%;
+        max-width: 900px;
+        display: flex; 
+        align-items: center; 
+        justify-content: flex-start; 
+        gap: 40px; 
+        text-align: left; 
+        border-top: 6px solid var(--primary-color);
     }
-    header img { 
-      height:50px; 
-      border-radius:6px; 
-      margin-right: 15px; /* Menambah jarak antara logo dan judul */
+
+    .brand-logo {
+        max-height: 120px; 
+        width: auto;
+        object-fit: contain;
+        flex-shrink: 0; 
     }
-    .header-title {
-      flex-grow: 1; /* Memungkinkan judul tetap di tengah */
+
+    .control-content {
+        flex: 1; 
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
-    .header-right {
-      width: 65px; /* Menyeimbangkan dengan ukuran logo */
+
+    .controls h1 { 
+        margin: 0 0 5px 0; 
+        font-size: 1.6rem; 
+        color: #111827; 
+        font-weight: 700;
+        line-height: 1.2;
     }
-    .sidebar {
-      position:fixed; 
-      top:80px; /* Menyesuaikan posisi sidebar di bawah header fixed */
-      left:0; 
-      width:220px; 
-      height:calc(100% - 80px); /* Menyesuaikan tinggi sidebar */
-      background:#000000; 
-      padding-top:20px; /* Mengurangi padding atas */
-      overflow-y: auto; /* Menambahkan scroll jika konten sidebar terlalu panjang */
+    
+    .controls .subtitle {
+        color: var(--primary-color);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
     }
-    .sidebar a {
-      display:block; 
-      color:#fff; 
-      padding:12px 20px;
-      text-decoration:none; 
-      font-size:16px;
-      transition: all 0.3s ease; /* Menambahkan transisi untuk efek hover */
+
+    .controls p { 
+        color: #6b7280; 
+        margin-bottom: 20px; 
+        font-size: 0.95rem; 
+        max-width: 600px; 
     }
-    .sidebar a:hover { 
-      background:#1abc9c; 
-      padding-left: 25px; /* Efek geser saat hover */
+
+    /* --- INPUT GROUP & BUTTON GROUP --- */
+    .input-group {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap; 
     }
-    .sidebar a i {
-      margin-right: 10px; /* Memberi jarak antara icon dan teks */
-      width: 20px; /* Menjaga alignment icon */
-      text-align: center;
+
+    /* Container khusus agar 2 tombol selalu berdampingan */
+    .button-group {
+        display: flex;
+        gap: 10px; /* Jarak kecil antara Download dan Hapus */
+        flex-shrink: 0; /* Mencegah tombol mengecil */
     }
-    .content { 
-      margin-left:220px; 
-      padding:20px; 
-    }
-    .card {
-      background:#fff; 
-      padding:20px; 
-      margin-bottom:20px;
-      border-radius:8px; 
-      box-shadow:0 2px 5px rgba(0,0,0,0.1);
-      transition: transform 0.3s ease; /* Efek hover pada card */
-    }
-    .card:hover {
-      transform: translateY(-5px); /* Efek mengangkat card saat hover */
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2); /* Bayangan lebih besar saat hover */
-    }
-    h2 {
-      color: #c60000; /* Warna judul sesuai tema */
-      border-bottom: 2px solid #c60000; /* Garis bawah judul */
-      padding-bottom: 10px;
-      margin-bottom: 20px;
-    }
-    h3 {
-      color: #333;
-      margin-top: 20px;
-      margin-bottom: 10px;
-    }
-    .settings-section {
-      margin-bottom: 25px;
-      padding: 15px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      border-left: 4px solid #c60000;
-    }
-    .settings-section h3 {
-      margin-top: 0;
-      color: #c60000;
-    }
-    .table-wrapper {
-      margin-top: 15px;
-    }
-    .tools-container {
-      position: sticky;
-      top: 0;
-      background: #fff;
-      z-index: 20;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #eee;
-    }
-    .table-container {
-      max-height: 500px; /* Membatasi tinggi tabel */
-      overflow-y: auto; /* Menambahkan scroll vertikal */
-    }
-    table { 
-      width:100%; 
-      border-collapse:collapse; 
-      font-size:14px; 
-      white-space: nowrap; /* Mencegah teks wrap ke baris baru */
-    }
-    table th, table td {
-      border:1px solid #ccc; 
-      padding:8px; /* Menambah padding untuk kenyamanan membaca */
-      text-align: left; /* Default alignment ke kiri */
-    }
-    table th { 
-      background:#c60000; /* Warna header tabel sesuai gambar */
-      color:#fff; 
-      font-weight: bold;
-      position: sticky; /* Membuat header tabel tetap */
-      top: 0; /* Menempel di atas saat scroll */
-      z-index: 10; /* Memastikan header di atas baris data */
-      text-align: center; /* Header tetap rata tengah */
-    }
-    table tr:nth-child(even) { 
-      background:#f9f9f9; 
-    }
-    table tr:hover {
-      background: #e8f4fc; /* Efek hover pada baris tabel */
-    }
-    /* Perubahan untuk alignment tabel */
-    .text-center {
-      text-align: center;
-    }
-    .text-left {
-      text-align: left;
-    }
-    .tools { 
-      display:flex; 
-      gap:20px; 
-      align-items:center; 
-      flex-wrap:wrap;
-      background: #f8f9fa;
-      padding: 10px;
-      border-radius: 5px;
-    }
-    .tools label { 
-      font-weight:bold; 
-      margin-right:8px; 
-      color: #333;
-    }
-    .tools input, .tools select { 
-      padding:8px; 
-      font-size:14px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
-    .tools input:focus, .tools select:focus {
-      outline: none;
-      border-color: #c60000;
-      box-shadow: 0 0 5px rgba(198, 0, 0, 0.3);
-    }
-    .pagination { 
-      margin-top:15px; 
-      text-align:center; 
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .pagination button {
-      padding:8px 15px; 
-      margin:0 5px;
-      border:none; 
-      border-radius:4px;
-      background:#2c3e50; 
-      color:#fff; 
-      cursor:pointer;
-      transition: all 0.3s ease;
-    }
-    .pagination button:hover {
-      background: #1abc9c;
-    }
-    .pagination button:disabled { 
-      background:#aaa; 
-      cursor:not-allowed; 
-    }
-    .pagination-controls {
-      display: flex;
-      align-items: center;
-    }
-    .pagination-info {
-      flex-grow: 1;
-      text-align: center;
-    }
-    .rows-per-page {
-      display: flex;
-      align-items: center;
-    }
+
     input[type="file"] {
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      background: #f8f9fa;
-      cursor: pointer;
-    }
-    input[type="file"]:hover {
-      background: #e9ecef;
-    }
-    .dropdown-arrow {
-      position: relative;
-      display: inline-block;
-    }
-    .dropdown-arrow::after {
-      content: '\f078';
-      font-family: 'Font Awesome 6 Free';
-      font-weight: 900;
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      pointer-events: none;
-    }
-    .status-badge {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: bold;
-    }
-    .status-pending {
-      background-color: #f39c12;
-      color: white;
-    }
-    .status-approved {
-      background-color: #27ae60;
-      color: white;
-    }
-    .status-rejected {
-      background-color: #e74c3c;
-      color: white;
-    }
-    .status-returned {
-      background-color: #3498db;
-      color: white;
-    }
-    .filter-value {
-      margin-left: 10px;
-      padding: 5px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      width: 80px;
-    }
-    .notification {
-      position: fixed;
-      top: 90px;
-      right: 20px;
-      background: #27ae60;
-      color: white;
-      padding: 15px 20px;
-      border-radius: 5px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      z-index: 1001;
-      display: none;
-      animation: slideIn 0.3s ease-out;
-    }
-    @keyframes slideIn {
-      from {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-    .btn {
-      padding: 8px 15px;
-      background: #c60000;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background 0.3s ease;
-    }
-    .btn:hover {
-      background: #a30000;
-    }
-    .btn-success {
-      background: #27ae60;
-    }
-    .btn-success:hover {
-      background: #219653;
-    }
-    .btn-danger {
-      background: #e74c3c;
-    }
-    .btn-danger:hover {
-      background: #c0392b;
-    }
-    .file-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <div class="header-left">
-      <img id="logo" src="" alt="Logo">
-    </div>
-    <div class="header-title">
-      <span>DASHBOARD - Districk KUPANG</span>
-    </div>
-    <div class="header-right">
-      <!-- Ruang kosong untuk keseimbangan -->
-    </div>
-  </header>
-
-  <div class="sidebar">
-    <a href="#" onclick="showPage('master')"><i class="fas fa-cogs"></i> Master Komponen</a>
-    <a href="#" onclick="showPage('stock')"><i class="fas fa-boxes"></i> Stock Komponen</a>
-    <a href="#" onclick="showPage('reservasi')"><i class="fas fa-calendar-check"></i> Reservasi</a>
-    <a href="#" onclick="showPage('service')"><i class="fas fa-headset"></i> Service Calls</a>
-    <a href="#" onclick="showPage('settings')"><i class="fas fa-cog"></i> Pengaturan</a>
-    <a href="#" onclick="showPage('logout')"><i class="fas fa-sign-out-alt"></i> Logout</a>
-  </div>
-
-  <div class="content">
-    <!-- MASTER KOMPONEN -->
-    <div id="master" class="card">
-      <h2><i class="fas fa-cogs"></i> Master Komponen</h2>
-
-      <!-- Import Excel -->
-      <h3><i class="fas fa-file-excel"></i> Import File Excel</h3>
-      <input type="file" id="importMaster" accept=".xlsx,.xls,.csv" onchange="importMasterExcel()" />
-
-      <!-- Wrapper untuk tabel dan tools -->
-      <div class="table-wrapper">
-        <!-- Tools container yang sticky -->
-        <div class="tools-container">
-          <!-- Pencarian + Filter -->
-          <div class="tools">
-            <div>
-              <label for="searchMaster"><i class="fas fa-search"></i> Cari:</label>
-              <input type="text" id="searchMaster" placeholder="Part Number / Description" onkeyup="applyMasterFilter()" />
-            </div>
-            <div>
-              <label for="filterPart"><i class="fas fa-filter"></i> Filter Part Number:</label>
-              <select id="filterPart" onchange="applyMasterFilter()">
-                <option value="all">Semua</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tabel dengan container -->
-        <div class="table-container">
-          <table id="masterTable">
-            <thead>
-              <tr>
-                <th>No.</th>
-                <th>Part Number</th>
-                <th>Description</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Pagination -->
-      <div class="pagination">
-        <div class="pagination-controls">
-          <button id="prevMaster" onclick="prevMasterPage()"><i class="fas fa-arrow-left"></i> Back</button>
-        </div>
-        <div class="pagination-info">
-          <span id="pageInfoMaster"></span>
-        </div>
-        <div class="rows-per-page">
-          <label for="rowsPerPageMaster">Baris per halaman:</label>
-          <select id="rowsPerPageMaster" onchange="changeRowsPerPageMaster()">
-            <option value="10">10</option>
-            <option value="15" selected>15</option>
-            <option value="20">20</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-          </select>
-          <button id="nextMaster" onclick="nextMasterPage()">Next <i class="fas fa-arrow-right"></i></button>
-        </div>
-      </div>
-    </div>
-
-    <!-- STOCK SPAREPART -->
-    <div id="stock" class="card" style="display:none;">
-      <h2><i class="fas fa-boxes"></i> Data Stock Komponen</h2>
-
-      <!-- Import Excel -->
-      <h3><i class="fas fa-file-excel"></i> Import File Excel</h3>
-      <input type="file" id="importFile" accept=".xlsx,.xls,.csv" onchange="importExcel()" />
-      
-      <!-- Download Excel -->
-      <div class="file-actions">
-        <button class="btn btn-success" onclick="exportStockToExcel()">
-          <i class="fas fa-download"></i> Download Excel
-        </button>
-      </div>
-
-      <!-- Wrapper untuk tabel dan tools -->
-      <div class="table-wrapper">
-        <!-- Tools container yang sticky -->
-        <div class="tools-container">
-          <div class="tools">
-            <div>
-              <label for="filterLokasi"><i class="fas fa-filter"></i> Filter Tipe Lokasi:</label>
-              <select id="filterLokasi" onchange="applyFilter()">
-                <option value="all">Semua</option>
-              </select>
-            </div>
-            <div>
-              <label for="searchInput"><i class="fas fa-search"></i> Cari:</label>
-              <input type="text" id="searchInput" placeholder="Nama / Part / Deskripsi" onkeyup="applyFilter()" />
-            </div>
-          </div>
-        </div>
-
-        <!-- Tabel dengan container -->
-        <div class="table-container">
-          <table id="stockTable">
-            <thead>
-              <tr>
-                <th>No.</th>
-                <th>Tipe Lokasi</th>
-                <th>Nama</th>
-                <th>Part</th>
-                <th>Deskripsi Part</th>
-                <th>QTY</th>
-                <th>QTY Alloc</th>
-                <th>Available QTY</th>
-                <th>Return To Factory</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="pagination">
-        <div class="pagination-controls">
-          <button id="prevBtn" onclick="prevPage()"><i class="fas fa-arrow-left"></i> Back</button>
-        </div>
-        <div class="pagination-info">
-          <span id="pageInfo"></span>
-        </div>
-        <div class="rows-per-page">
-          <label for="rowsPerPage">Baris per halaman:</label>
-          <select id="rowsPerPage" onchange="changeRowsPerPage()">
-            <option value="10">10</option>
-            <option value="15" selected>15</option>
-            <option value="20">20</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-          </select>
-          <button id="nextBtn" onclick="nextPage()">Next <i class="fas fa-arrow-right"></i></button>
-        </div>
-      </div>
-    </div>
-
-    <!-- RESERVASI -->
-    <div id="reservasi" class="card" style="display:none;">
-      <h2><i class="fas fa-calendar-check"></i> Reservasi Komponen</h2>
-
-      <h3><i class="fas fa-file-excel"></i> Import File Excel</h3>
-      <input type="file" id="importReservasi" accept=".xlsx,.xls,.csv" onchange="importReservasiExcel()" />
-      
-      <!-- Download Excel -->
-      <div class="file-actions">
-        <button class="btn btn-success" onclick="exportReservasiToExcel()">
-          <i class="fas fa-download"></i> Download Excel
-        </button>
-      </div>
-      
-      <!-- Wrapper untuk tabel dan tools -->
-      <div class="table-wrapper">
-        <!-- Tools container yang sticky -->
-        <div class="tools-container">
-          <!-- Pencarian + Filter -->
-          <div class="tools">
-            <div>
-              <label for="searchReservasi"><i class="fas fa-search"></i> Cari:</label>
-              <input type="text" id="searchReservasi" placeholder="Nomor / Catatan / Part" onkeyup="applyReservasiFilter()" />
-            </div>
-            <div>
-              <label for="filterTeknisi"><i class="fas fa-filter"></i> Filter Berdasarkan Teknisi Perbaikan:</label>
-              <select id="filterTeknisi" onchange="applyReservasiFilter()">
-                <option value="all">Semua</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tabel dengan container -->
-        <div class="table-container">
-          <table id="reservasiTable">
-            <thead>
-              <tr>
-                <th>Nomor</th>
-                <th>Catatan</th>
-                <th>Part</th>
-                <th>Qty Reservasi</th>
-                <th>Qty Transaksi</th>
-                <th>Qty Close</th>
-                <th>Part Demand</th>
-                <th>Serial Number</th>
-                <th>Return To Factory</th>
-                <th>Teknisi Perbaikan</th>
-                <th>Analisa SA</th>
-                <th>Disetujui Pada</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="pagination">
-        <div class="pagination-controls">
-          <button id="prevReservasi" onclick="prevReservasiPage()"><i class="fas fa-arrow-left"></i> Back</button>
-        </div>
-        <div class="pagination-info">
-          <span id="pageInfoReservasi"></span>
-        </div>
-        <div class="rows-per-page">
-          <label for="rowsPerPageReservasi">Baris per halaman:</label>
-          <select id="rowsPerPageReservasi" onchange="changeRowsPerPageReservasi()">
-            <option value="10">10</option>
-            <option value="15" selected>15</option>
-            <option value="20">20</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-          </select>
-          <button id="nextReservasi" onclick="nextReservasiPage()">Next <i class="fas fa-arrow-right"></i></button>
-        </div>
-      </div>
-    </div>
-
-    <!-- SERVICE CALLS -->
-    <div id="service" class="card" style="display:none;">
-      <h2><i class="fas fa-headset"></i> Service Calls</h2>
-
-      <h3><i class="fas fa-file-excel"></i> Import File Excel</h3>
-      <input type="file" id="importService" accept=".xlsx,.xls,.csv" onchange="importServiceExcel()" />
-      
-      <!-- Download Excel -->
-      <div class="file-actions">
-        <button class="btn btn-success" onclick="exportServiceToExcel()">
-          <i class="fas fa-download"></i> Download Excel
-        </button>
-      </div>
-      
-      <!-- Wrapper untuk tabel dan tools -->
-      <div class="table-wrapper">
-        <!-- Tools container yang sticky -->
-        <div class="tools-container">
-          <!-- Pencarian + Filter -->
-          <div class="tools">
-            <div>
-              <label for="searchService"><i class="fas fa-search"></i> Cari:</label>
-              <input type="text" id="searchService" placeholder="Nomor Service Call / Nama Pemilik" onkeyup="applyServiceFilter()" />
-            </div>
-            <div>
-              <label for="filterStatus"><i class="fas fa-filter"></i> Filter Status Pengerjaan:</label>
-              <select id="filterStatus" onchange="applyServiceFilter()">
-                <option value="all">Semua</option>
-                <option value="CANCELED">CANCELED</option>
-                <option value="INVOICED">INVOICED</option>
-                <option value="COMPLETED">COMPLETED</option>
-                <option value="PRINTED">PRINTED</option>
-                <option value="WIP">WIP</option>
-                <option value="WIP COMP">WIP COMP</option>
-                <option value="WIP TECH">WIP TECH</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tabel dengan container -->
-        <div class="table-container">
-          <table id="serviceTable">
-            <thead>
-              <tr>
-                <th>Tanggal Pendaftaran</th>
-                <th>Nomor Service Call</th>
-                <th>Jenis Layanan</th>
-                <th>Jenis Garansi</th>
-                <th>Tipe Demand</th>
-                <th>Nomor Seri</th>
-                <th>Nama Pemilik</th>
-                <th>Alamat Pemilik</th>
-                <th>Status Pengerjaan</th>
-                <th>Nama Teknisi</th>
-                <th>Tanggal Serah Terima</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="pagination">
-        <div class="pagination-controls">
-          <button id="prevService" onclick="prevServicePage()"><i class="fas fa-arrow-left"></i> Back</button>
-        </div>
-        <div class="pagination-info">
-          <span id="pageInfoService"></span>
-        </div>
-        <div class="rows-per-page">
-          <label for="rowsPerPageService">Baris per halaman:</label>
-          <select id="rowsPerPageService" onchange="changeRowsPerPageService()">
-            <option value="10">10</option>
-            <option value="15" selected>15</option>
-            <option value="20">20</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-          </select>
-          <button id="nextService" onclick="nextServicePage()">Next <i class="fas fa-arrow-right"></i></button>
-        </div>
-      </div>
-    </div>
-
-    <!-- PENGATURAN -->
-    <div id="settings" class="card" style="display:none;">
-      <h2><i class="fas fa-cog"></i> Pengaturan</h2>
-      
-      <div class="settings-section">
-        <h3><i class="fas fa-image"></i> Upload Logo</h3>
-        <input type="file" id="logoInput" accept="image/*" onchange="changeLogo()" />
-        <p>Logo yang diupload akan tampil di bagian header dashboard.</p>
-      </div>
-      
-      <div class="settings-section">
-        <h3><i class="fas fa-database"></i> Pengaturan Database</h3>
-        <p>Pengaturan koneksi dan manajemen database.</p>
-      </div>
-      
-      <div class="settings-section">
-        <h3><i class="fas fa-user-cog"></i> Pengaturan Pengguna</h3>
-        <p>Kelola pengguna, hak akses, dan izin.</p>
-      </div>
-      
-      <div class="settings-section">
-        <h3><i class="fas fa-bell"></i> Notifikasi</h3>
-        <p>Konfigurasi notifikasi dan pengingat sistem.</p>
-      </div>
-      
-      <div class="settings-section">
-        <h3><i class="fas fa-save"></i> Penyimpanan Data</h3>
-        <p>Data akan otomatis tersimpan di browser (localStorage) setiap kali ada perubahan.</p>
-        <button class="btn btn-danger" onclick="clearAllData()">Hapus Semua Data Tersimpan</button>
-      </div>
-    </div>
-
-    <!-- LOGOUT -->
-    <div id="logout" class="card" style="display:none;">
-      <h2><i class="fas fa-sign-out-alt"></i> Logout</h2>
-      <p>Anda telah keluar dari sistem.</p>
-    </div>
-  </div>
-
-  <!-- Notification -->
-  <div id="notification" class="notification"></div>
-
-  <script>
-    // ---- GLOBAL FUNCTION ----
-    function showPage(pageId) {
-      const pages = document.querySelectorAll('.card');
-      pages.forEach(p => p.style.display = "none");
-      document.getElementById(pageId).style.display = "block";
+        padding: 12px 20px;
+        border: 2px dashed var(--border-color);
+        border-radius: 8px;
+        background: #f9fafb;
+        color: #4b5563;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        width: 100%;
+        max-width: 320px; /* Lebar input disesuaikan agar muat dengan tombol */
+        flex: 1; /* Input mengambil sisa ruang */
+        min-width: 200px;
     }
 
-    // ---- NOTIFICATION ----
-    function showNotification(message, duration = 3000) {
-      const notification = document.getElementById('notification');
-      notification.textContent = message;
-      notification.style.display = 'block';
-      
-      setTimeout(() => {
-        notification.style.display = 'none';
-      }, duration);
+    input[type="file"]:hover { 
+        border-color: var(--primary-color); 
+        background: #fff5f5; 
+        color: var(--primary-color);
     }
 
-    // ---- LOCAL STORAGE MANAGEMENT ----
-    function saveToLocalStorage(key, data) {
-      try {
-        localStorage.setItem(key, JSON.stringify(data));
-        showNotification('Data berhasil disimpan!');
-      } catch (e) {
-        console.error('Gagal menyimpan data ke localStorage:', e);
-        showNotification('Gagal menyimpan data!', 5000);
-      }
+    button {
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.95rem;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        white-space: nowrap; /* Teks tombol tidak turun baris */
     }
 
-    function loadFromLocalStorage(key, defaultValue = []) {
-      try {
-        const data = localStorage.getItem(key);
-        return data ? JSON.parse(data) : defaultValue;
-      } catch (e) {
-        console.error('Gagal memuat data dari localStorage:', e);
-        return defaultValue;
-      }
+    .btn-primary { 
+        background-color: var(--primary-color); 
+        color: white; 
+        box-shadow: 0 4px 6px rgba(211, 47, 47, 0.3); 
+    }
+    .btn-primary:hover { 
+        background-color: var(--primary-hover); 
+        transform: translateY(-2px); 
+        box-shadow: 0 6px 8px rgba(211, 47, 47, 0.4);
     }
 
-    function clearAllData() {
-      if (confirm('Apakah Anda yakin ingin menghapus semua data tersimpan?')) {
-        localStorage.removeItem('masterData');
-        localStorage.removeItem('stockData');
-        localStorage.removeItem('reservasiData');
-        localStorage.removeItem('serviceData');
-        showNotification('Semua data berhasil dihapus!');
-        
-        // Reset data di memori
-        masterData = [];
-        filteredMaster = [];
-        allData = [];
-        filteredStock = [];
-        reservasiData = [];
-        filteredReservasi = [];
-        serviceData = [];
-        filteredService = [];
-        
-        // Render ulang tabel
-        if (document.getElementById('master').style.display !== 'none') {
-          renderMasterTable();
-        } else if (document.getElementById('stock').style.display !== 'none') {
-          renderTable();
-        } else if (document.getElementById('reservasi').style.display !== 'none') {
-          renderReservasiTable();
-        } else if (document.getElementById('service').style.display !== 'none') {
-          renderServiceTable();
+    .btn-danger { 
+        background-color: white; 
+        color: #555; 
+        border: 1px solid #d1d5db; 
+    }
+    .btn-danger:hover { 
+        background-color: #fee2e2; 
+        color: var(--danger-color); 
+        border-color: var(--danger-color); 
+    }
+
+    button:disabled { 
+        opacity: 0.6; 
+        cursor: not-allowed; 
+        transform: none !important; 
+        box-shadow: none; 
+        background-color: #e5e7eb;
+        color: #9ca3af;
+    }
+
+    /* --- PREVIEW AREA --- */
+    #preview-container {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 40px;
+        padding-bottom: 60px;
+        overflow-x: auto;
+    }
+
+    .empty-state {
+        margin-top: 50px; 
+        text-align: center; 
+        color: #9ca3af;
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        gap: 15px;
+        border: 2px dashed #e5e7eb;
+        padding: 40px;
+        border-radius: 12px;
+        background: white;
+    }
+    .empty-state svg { width: 64px; height: 64px; color: #d1d5db; }
+
+    /* --- A4 PAGE & GRID --- */
+    .page {
+        width: 210mm; 
+        min-height: 297mm;
+        background: white;
+        padding: 8mm; 
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        position: relative;
+        border: 1px solid #e5e7eb;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        width: 100%; 
+        height: 100%;
+        gap: 6px; 
+        border: none; 
+    }
+
+    .photo-box {
+        position: relative; 
+        width: 100%; 
+        height: 100%;
+        overflow: hidden;
+        background-color: #fff;
+        display: flex; 
+        align-items: center; 
+        justify-content: center;
+        border: 2px solid var(--guide-line);
+    }
+
+    .photo-box img { 
+        width: 100%; 
+        height: 100%; 
+        object-fit: cover; 
+        display: block; 
+        filter: contrast(1.05) brightness(1.05); 
+    }
+
+    /* --- LOADER & TOAST --- */
+    .toast {
+        position: fixed; bottom: 30px; left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background-color: #1f2937; color: white;
+        padding: 14px 28px; border-radius: 50px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        opacity: 0; visibility: hidden; transition: all 0.3s;
+        z-index: 9999; font-size: 0.9rem;
+        font-weight: 500;
+    }
+    .toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    .toast.success { border-left: 5px solid #10b981; }
+    .toast.error { border-left: 5px solid #ef4444; }
+
+    .loader-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(255,255,255,0.95);
+        display: none; flex-direction: column;
+        justify-content: center; align-items: center; z-index: 10000;
+    }
+    .spinner {
+        width: 50px; height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+    #loaderText { margin-top: 20px; font-weight: 600; color: #374151; font-size: 1.1rem; }
+
+    /* --- RESPONSIVE --- */
+    @media (max-width: 768px) {
+        .controls {
+            flex-direction: column;
+            text-align: center;
+            gap: 20px;
+            padding: 30px 20px;
         }
-      }
+        
+        .brand-logo {
+            margin-bottom: 10px;
+        }
+
+        .control-content {
+            width: 100%;
+        }
+
+        .input-group {
+            flex-direction: column;
+            width: 100%;
+            align-items: stretch;
+        }
+
+        .button-group {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        input[type="file"], button {
+            width: 100%;
+            justify-content: center;
+        }
     }
+</style>
+</head>
 
-    // ---- EXPORT TO EXCEL ----
-    function exportStockToExcel() {
-      if (filteredStock.length === 0) {
-        showNotification('Tidak ada data untuk diekspor!', 5000);
-        return;
-      }
+<body>
 
-      // Buat workbook baru
-      const wb = XLSX.utils.book_new();
-      
-      // Buat worksheet dari data
-      const ws = XLSX.utils.json_to_sheet(filteredStock.map((row, index) => {
-        return {
-          "No.": index + 1,
-          "Tipe Lokasi": row[stockIndexMap[1]] || "",
-          "Nama": row[stockIndexMap[2]] || "",
-          "Part": row[stockIndexMap[3]] || "",
-          "Deskripsi Part": row[stockIndexMap[4]] || "",
-          "QTY": row[stockIndexMap[5]] || "",
-          "QTY Alloc": row[stockIndexMap[6]] || "",
-          "Available QTY": row[stockIndexMap[7]] || "",
-          "Return To Factory": row[stockIndexMap[8]] || ""
-        };
-      }));
-      
-      // Tambahkan worksheet ke workbook
-      XLSX.utils.book_append_sheet(wb, ws, "Stock Komponen");
-      
-      // Generate nama file dengan timestamp
-      const now = new Date();
-      const timestamp = now.getFullYear() + 
-                      String(now.getMonth() + 1).padStart(2, '0') + 
-                      String(now.getDate()).padStart(2, '0') + '_' +
-                      String(now.getHours()).padStart(2, '0') + 
-                      String(now.getMinutes()).padStart(2, '0');
-      const fileName = `Data_Stock_Komponen_${timestamp}.xlsx`;
-      
-      // Download file
-      XLSX.writeFile(wb, fileName);
-      
-      showNotification('Data berhasil diekspor ke Excel!');
-    }
-
-    // ---- EXPORT RESERVASI TO EXCEL ----
-    function exportReservasiToExcel() {
-      if (filteredReservasi.length === 0) {
-        showNotification('Tidak ada data untuk diekspor!', 5000);
-        return;
-      }
-
-      // Buat workbook baru
-      const wb = XLSX.utils.book_new();
-      
-      // Buat worksheet dari data
-      const ws = XLSX.utils.json_to_sheet(filteredReservasi.map((row, index) => {
-        return {
-          "No.": index + 1,
-          "Nomor": row[reservasiIndexMap[0]] || "",
-          "Catatan": row[reservasiIndexMap[1]] || "",
-          "Part": row[reservasiIndexMap[2]] || "",
-          "Qty Reservasi": row[reservasiIndexMap[3]] || "",
-          "Qty Transaksi": row[reservasiIndexMap[4]] || "",
-          "Qty Close": row[reservasiIndexMap[5]] || "",
-          "Part Demand": row[reservasiIndexMap[6]] || "",
-          "Serial Number": row[reservasiIndexMap[7]] || "",
-          "Return To Factory": row[reservasiIndexMap[8]] || "",
-          "Teknisi Perbaikan": row[reservasiIndexMap[9]] || "",
-          "Analisa SA": row[reservasiIndexMap[10]] || "",
-          "Disetujui Pada": formatDateTime(row[reservasiIndexMap[11]])
-        };
-      }));
-      
-      // Tambahkan worksheet ke workbook
-      XLSX.utils.book_append_sheet(wb, ws, "Reservasi Komponen");
-      
-      // Generate nama file dengan timestamp
-      const now = new Date();
-      const timestamp = now.getFullYear() + 
-                      String(now.getMonth() + 1).padStart(2, '0') + 
-                      String(now.getDate()).padStart(2, '0') + '_' +
-                      String(now.getHours()).padStart(2, '0') + 
-                      String(now.getMinutes()).padStart(2, '0');
-      const fileName = `Data_Reservasi_Komponen_${timestamp}.xlsx`;
-      
-      // Download file
-      XLSX.writeFile(wb, fileName);
-      
-      showNotification('Data reservasi berhasil diekspor ke Excel!');
-    }
-
-    // ---- EXPORT SERVICE TO EXCEL ----
-    function exportServiceToExcel() {
-      if (filteredService.length === 0) {
-        showNotification('Tidak ada data untuk diekspor!', 5000);
-        return;
-      }
-
-      // Buat workbook baru
-      const wb = XLSX.utils.book_new();
-      
-      // Buat worksheet dari data
-      const ws = XLSX.utils.json_to_sheet(filteredService.map((row, index) => {
-        return {
-          "No.": index + 1,
-          "Tanggal Pendaftaran": formatDateOnly(row[serviceIndexMap[0]]),
-          "Nomor Service Call": row[serviceIndexMap[1]] || "",
-          "Jenis Layanan": row[serviceIndexMap[2]] || "",
-          "Jenis Garansi": row[serviceIndexMap[3]] || "",
-          "Tipe Demand": row[serviceIndexMap[4]] || "",
-          "Nomor Seri": row[serviceIndexMap[5]] || "",
-          "Nama Pemilik": row[serviceIndexMap[6]] || "",
-          "Alamat Pemilik": row[serviceIndexMap[7]] || "",
-          "Status Pengerjaan": row[serviceIndexMap[8]] || "",
-          "Nama Teknisi": row[serviceIndexMap[9]] || "",
-          "Tanggal Serah Terima": formatDateTime(row[serviceIndexMap[10]])
-        };
-      }));
-      
-      // Tambahkan worksheet ke workbook
-      XLSX.utils.book_append_sheet(wb, ws, "Service Calls");
-      
-      // Generate nama file dengan timestamp
-      const now = new Date();
-      const timestamp = now.getFullYear() + 
-                      String(now.getMonth() + 1).padStart(2, '0') + 
-                      String(now.getDate()).padStart(2, '0') + '_' +
-                      String(now.getHours()).padStart(2, '0') + 
-                      String(now.getMinutes()).padStart(2, '0');
-      const fileName = `Data_Service_Calls_${timestamp}.xlsx`;
-      
-      // Download file
-      XLSX.writeFile(wb, fileName);
-      
-      showNotification('Data service calls berhasil diekspor ke Excel!');
-    }
-
-    // ---- LOGO ----
-    function changeLogo() {
-      const file = document.getElementById("logoInput").files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          document.getElementById("logo").src = e.target.result;
-          localStorage.setItem("dashboardLogo", e.target.result); // simpan di local storage
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    // ---- FUNGSI FORMAT TANGGAL ----
-    function formatDateTime(dateString) {
-      if (!dateString) return "";
-      
-      // Jika dateString adalah objek Date Excel (angka)
-      if (typeof dateString === 'number') {
-        const date = new Date((dateString - 25569) * 86400 * 1000);
-        return formatDateObject(date);
-      }
-      
-      // Coba parsing sebagai string tanggal
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return dateString; // Kembalikan asli jika tidak bisa diparsing
-      }
-      
-      return formatDateObject(date);
-    }
+<div class="controls">
+    <!-- Logo di Kiri -->
+    <img src="https://z-cdn-media.chatglm.cn/files/0905dca3-cab0-4c55-9de0-34d7d3f4c872.png?auth_key=1871042972-471b765107db4b79b1c69d8dc60e1de7-0-608790df216aa46b2fbfb9886ac84651" alt="POLYTRON Logo" class="brand-logo" onerror="this.style.display='none'">
     
-    function formatDateObject(date) {
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = date.getFullYear();
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      
-      return `${day}/${month}/${year} ${hours}:${minutes}`;
-    }
-    
-    // ---- FUNGSI FORMAT TANGGAL SAJA (tanpa jam) ----
-    function formatDateOnly(dateString) {
-      if (!dateString) return "";
-      
-      // Jika dateString adalah objek Date Excel (angka)
-      if (typeof dateString === 'number') {
-        const date = new Date((dateString - 25569) * 86400 * 1000);
-        return formatDateOnlyObject(date);
-      }
-      
-      // Coba parsing sebagai string tanggal
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return dateString; // Kembalikan asli jika tidak bisa diparsing
-      }
-      
-      return formatDateOnlyObject(date);
-    }
-    
-    function formatDateOnlyObject(date) {
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = date.getFullYear();
-      
-      return `${day}/${month}/${year}`;
-    }
-
-    // ---- MASTER KOMPONEN ----
-    let masterData = [];
-    let filteredMaster = [];
-    let currentMasterPage = 1;
-    let rowsPerPageMaster = 15; // Diubah dari 20 menjadi 15
-
-    function importMasterExcel() {
-      const file = document.getElementById('importMaster').files[0];
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, {type: 'array'});
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet, {header:1});
-
-        const headers = ["No.","Part Number","Description"];
-        const excelHeaders = json[0].map(h => h.toString().trim());
-        let indexMap = headers.map(h => excelHeaders.indexOf(h));
-
-        masterData = json.slice(1).filter(r => r.length > 0).map(r => [
-          r[indexMap[1]] || "",
-          r[indexMap[2]] || ""
-        ]);
-
-        // Simpan ke localStorage
-        saveToLocalStorage('masterData', masterData);
+    <!-- Konten di Kanan -->
+    <div class="control-content">
+        <div class="subtitle">Internal Tools - POLYTRON KUPANG</div>
+        <h1>CONVERT TOOLS ( SJOB LABEL )</h1>
+        <p>Format: Garis Tebal, Ada Spasi, Output High Res (300 DPI).</p>
         
-        updatePartFilter(masterData);
-        filteredMaster = masterData;
-        currentMasterPage = 1;
-        renderMasterTable();
-      };
-      reader.readAsArrayBuffer(file);
+        <div class="input-group">
+            <input type="file" id="upload" multiple accept="image/*, .pdf" title="Pilih Foto atau PDF">
+            
+            <!-- Button Group: Download & Hapus bersebelahan -->
+            <div class="button-group">
+                <button id="btnDownload" class="btn-primary" onclick="generatePDF()" disabled>
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Download PDF
+                </button>
+
+                <button id="btnReset" class="btn-danger" onclick="resetData()" disabled>
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    Hapus Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="preview-container">
+    <div class="empty-state" id="emptyState">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        <p>Belum ada data. Silakan upload Foto atau PDF.</p>
+    </div>
+</div>
+
+<!-- Toast & Loader -->
+<div id="toast" class="toast">Notifikasi</div>
+<div id="loader" class="loader-overlay">
+    <div class="spinner"></div>
+    <p id="loaderText">Memproses...</p>
+</div>
+
+<script>
+    // --- SETUP PDF JS ---
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    // --- VARIABLES ---
+    const uploadInput = document.getElementById("upload");
+    const previewContainer = document.getElementById("preview-container");
+    const emptyState = document.getElementById("emptyState");
+    const btnDownload = document.getElementById("btnDownload");
+    const btnReset = document.getElementById("btnReset");
+    const toastEl = document.getElementById("toast");
+    const loaderEl = document.getElementById("loader");
+    const loaderText = document.getElementById("loaderText");
+
+    // --- TOAST FUNCTION ---
+    function showToast(message, type = 'normal', duration = 3000) {
+        toastEl.textContent = message;
+        toastEl.className = 'toast show'; 
+        if (type === 'success') toastEl.classList.add('success');
+        if (type === 'error') toastEl.classList.add('error');
+        setTimeout(() => { toastEl.classList.remove("show"); }, duration);
     }
 
-    function updatePartFilter(data) {
-      const select = document.getElementById("filterPart");
-      select.innerHTML = '<option value="all">Semua</option>';
-      const initials = new Set();
-      data.forEach(row => {
-        if (row[0]) initials.add(row[0].toString().charAt(0).toUpperCase());
-      });
-      [...initials].sort().forEach(l => {
-        let opt = document.createElement("option");
-        opt.value = l;
-        opt.textContent = l;
-        select.appendChild(opt);
-      });
+    // --- FUNGSI UTAMA: PROSES FILE ---
+    uploadInput.addEventListener("change", async (e) => {
+        const files = [...e.target.files];
+        if (files.length === 0) return;
+
+        loaderEl.style.display = 'flex';
+        loaderText.textContent = "Menganalisis file...";
+
+        emptyState.style.display = 'none';
+        previewContainer.innerHTML = '';
+        btnDownload.disabled = false;
+        btnReset.disabled = false;
+
+        let allImages = []; 
+
+        try {
+            for (const file of files) {
+                if (file.type === 'application/pdf') {
+                    loaderText.textContent = `Mengkonversi ${file.name} (High Res)...`;
+                    const pdfImages = await convertPdfToImages(file);
+                    allImages = allImages.concat(pdfImages);
+                } else if (file.type.startsWith('image/')) {
+                    loaderText.textContent = `Memuat gambar ${file.name}...`;
+                    const imgBase64 = await readImageAsBase64(file);
+                    allImages.push(imgBase64);
+                } else {
+                    console.warn("Format file tidak didukung:", file.name);
+                }
+            }
+
+            if (allImages.length === 0) {
+                showToast("Tidak ada gambar valid yang ditemukan.", 'error');
+                resetData();
+                return;
+            }
+
+            renderLayout(allImages);
+            showToast(`Berhasil memproses ${allImages.length} foto.`, 'success');
+
+        } catch (error) {
+            console.error(error);
+            showToast("Terjadi kesalahan saat memproses file.", 'error');
+            resetData();
+        } finally {
+            loaderEl.style.display = 'none';
+        }
+    });
+
+    // --- KONVERSI PDF HIGH RES ---
+    async function convertPdfToImages(file) {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const images = [];
+        
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale: 2.0 });
+            
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+            images.push(canvas.toDataURL('image/jpeg', 1.0));
+        }
+        return images;
     }
 
-    function renderMasterTable() {
-      const tbody = document.getElementById("masterTable").querySelector("tbody");
-      tbody.innerHTML = "";
-
-      const start = (currentMasterPage - 1) * rowsPerPageMaster;
-      const end = start + rowsPerPageMaster;
-      const pageData = filteredMaster.slice(start, end);
-
-      pageData.forEach((row, i) => {
-        let newRow = tbody.insertRow();
-        
-        // Kolom No. (rata tengah)
-        let cellNo = newRow.insertCell();
-        cellNo.textContent = start + i + 1;
-        cellNo.className = "text-center";
-        
-        // Kolom Part Number (rata kiri)
-        let cellPart = newRow.insertCell();
-        cellPart.textContent = row[0];
-        cellPart.className = "text-left";
-        
-        // Kolom Description (rata kiri)
-        let cellDesc = newRow.insertCell();
-        cellDesc.textContent = row[1];
-        cellDesc.className = "text-left";
-      });
-
-      document.getElementById("pageInfoMaster").textContent =
-        `Halaman ${currentMasterPage} dari ${Math.ceil(filteredMaster.length / rowsPerPageMaster)}`;
-
-      document.getElementById("prevMaster").disabled = currentMasterPage === 1;
-      document.getElementById("nextMaster").disabled = end >= filteredMaster.length;
-    }
-
-    function applyMasterFilter() {
-      const searchVal = document.getElementById("searchMaster").value.toLowerCase();
-      const filterVal = document.getElementById("filterPart").value;
-
-      filteredMaster = masterData;
-
-      if (filterVal !== "all") {
-        filteredMaster = filteredMaster.filter(r => r[0].toString().toUpperCase().startsWith(filterVal));
-      }
-
-      if (searchVal) {
-        filteredMaster = filteredMaster.filter(r => {
-          return (
-            (r[0] && r[0].toString().toLowerCase().includes(searchVal)) ||
-            (r[1] && r[1].toString().toLowerCase().includes(searchVal))
-          );
+    function readImageAsBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = (e) => reject(e);
+            reader.readAsDataURL(file);
         });
-      }
-
-      currentMasterPage = 1;
-      renderMasterTable();
     }
 
-    function prevMasterPage() {
-      if (currentMasterPage > 1) {
-        currentMasterPage--;
-        renderMasterTable();
-      }
+    function renderLayout(images) {
+        const perPage = 9;
+        
+        for (let i = 0; i < images.length; i += perPage) {
+            const page = document.createElement("div");
+            page.className = "page";
+            
+            const grid = document.createElement("div");
+            grid.className = "grid";
+
+            const pageImages = images.slice(i, i + perPage);
+
+            pageImages.forEach(imgSrc => {
+                const box = document.createElement("div");
+                box.className = "photo-box";
+
+                const img = document.createElement("img");
+                img.src = imgSrc;
+                
+                box.appendChild(img);
+                grid.appendChild(box);
+            });
+
+            const emptySlots = perPage - pageImages.length;
+            if (emptySlots > 0) {
+                for (let k = 0; k < emptySlots; k++) {
+                    const emptyBox = document.createElement("div");
+                    emptyBox.className = "photo-box";
+                    emptyBox.style.background = "#fafafa";
+                    grid.appendChild(emptyBox);
+                }
+            }
+
+            page.appendChild(grid);
+            previewContainer.appendChild(page);
+        }
     }
 
-    function nextMasterPage() {
-      if (currentMasterPage * rowsPerPageMaster < filteredMaster.length) {
-        currentMasterPage++;
-        renderMasterTable();
-      }
+    function resetData() {
+        const hasContent = previewContainer.querySelector(".page");
+        if (!hasContent) {
+            showToast("Tidak ada data untuk dihapus.", 'error');
+            return;
+        }
+        if (confirm("Apakah Anda yakin ingin menghapus semua data?")) {
+            uploadInput.value = "";
+            previewContainer.innerHTML = "";
+            previewContainer.appendChild(emptyState);
+            emptyState.style.display = 'flex';
+            btnDownload.disabled = true;
+            btnReset.disabled = true;
+            showToast("Semua data telah dihapus.");
+        }
     }
 
-    function changeRowsPerPageMaster() {
-      rowsPerPageMaster = parseInt(document.getElementById("rowsPerPageMaster").value);
-      currentMasterPage = 1;
-      renderMasterTable();
+    async function generatePDF() {
+        const pages = document.querySelectorAll(".page");
+        if (pages.length === 0) {
+            showToast("Tidak ada halaman untuk diunduh.", 'error');
+            return;
+        }
+
+        loaderEl.style.display = 'flex';
+        loaderText.textContent = "Sedang membuat PDF High Definition...";
+        btnDownload.disabled = true;
+        btnReset.disabled = true;
+
+        try {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF("p", "mm", "a4");
+            const pageWidth = 210;
+            const pageHeight = 297;
+
+            for (let i = 0; i < pages.length; i++) {
+                const canvas = await html2canvas(pages[i], { 
+                    scale: 3, 
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: "#ffffff"
+                });
+                
+                const imgData = canvas.toDataURL("image/jpeg", 0.95);
+
+                if (i > 0) pdf.addPage();
+                pdf.addImage(imgData, "JPEG", 0, 0, pageWidth, pageHeight);
+            }
+
+            pdf.save("LABEL_POLYTRON_SPACED_GRID.pdf");
+            showToast("PDF berhasil diunduh!", "success");
+
+        } catch (error) {
+            console.error(error);
+            showToast("Terjadi kesalahan saat membuat PDF.", "error");
+        } finally {
+            loaderEl.style.display = 'none';
+            btnDownload.disabled = false;
+            btnReset.disabled = false;
+        }
     }
+</script>
 
-    // ---- STOCK KOMPONEN ----
-    let stockIndexMap = [];
-    let filteredStock = [];
-    let currentStockPage = 1;
-    let rowsPerPageStock = 15; // Diubah dari 20 menjadi 15
-
-    function importExcel() {
-      const file = document.getElementById('importFile').files[0];
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, {type: 'array'});
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet, {header:1});
-
-        const headers = ["No.","Tipe Lokasi","Nama","Part","Deskripsi Part","QTY","QTY Alloc","Available QTY","Return To Factory"];
-        const excelHeaders = json[0].map(h => h.toString().trim());
-        stockIndexMap = headers.map(h => excelHeaders.indexOf(h));
-
-        allData = json.slice(1).filter(r => r.length > 0);
-        
-        // Simpan ke localStorage
-        saveToLocalStorage('stockData', allData);
-        
-        filteredStock = allData;
-
-        updateFilterOptions(allData);
-        currentStockPage = 1;
-        renderTable();
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    function renderTable() {
-      const tbody = document.getElementById("stockTable").querySelector("tbody");
-      tbody.innerHTML = "";
-
-      const start = (currentStockPage - 1) * rowsPerPageStock;
-      const end = start + rowsPerPageStock;
-      const pageData = filteredStock.slice(start, end);
-
-      pageData.forEach((row, i) => {
-        let newRow = tbody.insertRow();
-        
-        // Kolom No. (rata tengah)
-        let cellNo = newRow.insertCell();
-        cellNo.textContent = start + i + 1;
-        cellNo.className = "text-center";
-        
-        // Kolom Tipe Lokasi (rata tengah)
-        let cellTipe = newRow.insertCell();
-        cellTipe.textContent = row[stockIndexMap[1]] || "";
-        cellTipe.className = "text-center";
-        
-        // Kolom Nama (rata kiri)
-        let cellNama = newRow.insertCell();
-        cellNama.textContent = row[stockIndexMap[2]] || "";
-        cellNama.className = "text-left";
-        
-        // Kolom Part (rata kiri)
-        let cellPart = newRow.insertCell();
-        cellPart.textContent = row[stockIndexMap[3]] || "";
-        cellPart.className = "text-left";
-        
-        // Kolom Deskripsi Part (rata kiri)
-        let cellDesc = newRow.insertCell();
-        cellDesc.textContent = row[stockIndexMap[4]] || "";
-        cellDesc.className = "text-left";
-        
-        // Kolom QTY (rata tengah)
-        let cellQty = newRow.insertCell();
-        cellQty.textContent = row[stockIndexMap[5]] || "";
-        cellQty.className = "text-center";
-        
-        // Kolom QTY Alloc (rata tengah)
-        let cellAlloc = newRow.insertCell();
-        cellAlloc.textContent = row[stockIndexMap[6]] || "";
-        cellAlloc.className = "text-center";
-        
-        // Kolom Available QTY (rata tengah)
-        let cellAvailable = newRow.insertCell();
-        cellAvailable.textContent = row[stockIndexMap[7]] || "";
-        cellAvailable.className = "text-center";
-        
-        // Kolom Return To Factory (rata tengah)
-        let cellReturn = newRow.insertCell();
-        cellReturn.textContent = row[stockIndexMap[8]] || "";
-        cellReturn.className = "text-center";
-      });
-
-      document.getElementById("pageInfo").textContent =
-        `Halaman ${currentStockPage} dari ${Math.ceil(filteredStock.length / rowsPerPageStock)}`;
-
-      document.getElementById("prevBtn").disabled = currentStockPage === 1;
-      document.getElementById("nextBtn").disabled = end >= filteredStock.length;
-    }
-
-    function updateFilterOptions(data) {
-      const lokasiSet = new Set();
-      data.forEach(row => {
-        const val = row[stockIndexMap[1]];
-        if (val) lokasiSet.add(val);
-      });
-
-      const select = document.getElementById("filterLokasi");
-      select.innerHTML = '<option value="all">Semua</option>';
-      lokasiSet.forEach(l => {
-        let opt = document.createElement("option");
-        opt.value = l;
-        opt.textContent = l;
-        select.appendChild(opt);
-      });
-    }
-
-    function applyFilter() {
-      const filterVal = document.getElementById("filterLokasi").value;
-      const searchVal = document.getElementById("searchInput").value.toLowerCase();
-
-      filteredStock = allData;
-
-      if (filterVal !== "all") {
-        filteredStock = filteredStock.filter(r => r[stockIndexMap[1]] == filterVal);
-      }
-
-      if (searchVal) {
-        filteredStock = filteredStock.filter(r => {
-          return (
-            (r[stockIndexMap[2]] && r[stockIndexMap[2]].toString().toLowerCase().includes(searchVal)) ||
-            (r[stockIndexMap[3]] && r[stockIndexMap[3]].toString().toLowerCase().includes(searchVal)) ||
-            (r[stockIndexMap[4]] && r[stockIndexMap[4]].toString().toLowerCase().includes(searchVal))
-          );
-        });
-      }
-
-      currentStockPage = 1;
-      renderTable();
-    }
-
-    function prevPage() {
-      if (currentStockPage > 1) {
-        currentStockPage--;
-        renderTable();
-      }
-    }
-
-    function nextPage() {
-      if (currentStockPage * rowsPerPageStock < filteredStock.length) {
-        currentStockPage++;
-        renderTable();
-      }
-    }
-
-    function changeRowsPerPage() {
-      rowsPerPageStock = parseInt(document.getElementById("rowsPerPage").value);
-      currentStockPage = 1;
-      renderTable();
-    }
-
-    // ---- RESERVASI ----
-    let reservasiData = [];
-    let reservasiIndexMap = [];
-    let filteredReservasi = [];
-    let currentReservasiPage = 1;
-    let rowsPerPageReservasi = 15;
-
-    function importReservasiExcel() {
-      const file = document.getElementById('importReservasi').files[0];
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, {type: 'array'});
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet, {header:1});
-
-        const headers = ["Nomor","Catatan","Part","Qty Reservasi","Qty Transaksi","Qty Close","Part Demand","Serial Number","Return To Factory","Teknisi Perbaikan","Analisa SA","Disetujui Pada"];
-        const excelHeaders = json[0].map(h => h.toString().trim());
-        reservasiIndexMap = headers.map(h => excelHeaders.indexOf(h));
-
-        reservasiData = json.slice(1).filter(r => r.length > 0);
-        
-        // Simpan ke localStorage
-        saveToLocalStorage('reservasiData', reservasiData);
-        
-        filteredReservasi = reservasiData;
-        currentReservasiPage = 1;
-        
-        updateTeknisiFilter(reservasiData);
-        renderReservasiTable();
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    function updateTeknisiFilter(data) {
-      const teknisiSet = new Set();
-      data.forEach(row => {
-        const val = row[reservasiIndexMap[9]]; // Teknisi Perbaikan
-        if (val) teknisiSet.add(val);
-      });
-
-      const select = document.getElementById("filterTeknisi");
-      select.innerHTML = '<option value="all">Semua</option>';
-      [...teknisiSet].sort().forEach(t => {
-        let opt = document.createElement("option");
-        opt.value = t;
-        opt.textContent = t;
-        select.appendChild(opt);
-      });
-    }
-
-    function renderReservasiTable() {
-      const tbody = document.getElementById("reservasiTable").querySelector("tbody");
-      tbody.innerHTML = "";
-
-      const start = (currentReservasiPage - 1) * rowsPerPageReservasi;
-      const end = start + rowsPerPageReservasi;
-      const pageData = filteredReservasi.slice(start, end);
-
-      pageData.forEach((row, i) => {
-        let newRow = tbody.insertRow();
-        
-        // Kolom Nomor (rata tengah)
-        let cellNomor = newRow.insertCell();
-        cellNomor.textContent = row[reservasiIndexMap[0]] || "";
-        cellNomor.className = "text-center";
-        
-        // Kolom Catatan (rata kiri)
-        let cellCatatan = newRow.insertCell();
-        cellCatatan.textContent = row[reservasiIndexMap[1]] || "";
-        cellCatatan.className = "text-left";
-        
-        // Kolom Part (rata kiri)
-        let cellPart = newRow.insertCell();
-        cellPart.textContent = row[reservasiIndexMap[2]] || "";
-        cellPart.className = "text-left";
-        
-        // Kolom Qty Reservasi (rata tengah)
-        let cellQtyReservasi = newRow.insertCell();
-        cellQtyReservasi.textContent = row[reservasiIndexMap[3]] || "";
-        cellQtyReservasi.className = "text-center";
-        
-        // Kolom Qty Transaksi (rata tengah)
-        let cellQtyTransaksi = newRow.insertCell();
-        cellQtyTransaksi.textContent = row[reservasiIndexMap[4]] || "";
-        cellQtyTransaksi.className = "text-center";
-        
-        // Kolom Qty Close (rata tengah)
-        let cellQtyClose = newRow.insertCell();
-        cellQtyClose.textContent = row[reservasiIndexMap[5]] || "";
-        cellQtyClose.className = "text-center";
-        
-        // Kolom Part Demand (rata kiri)
-        let cellPartDemand = newRow.insertCell();
-        cellPartDemand.textContent = row[reservasiIndexMap[6]] || "";
-        cellPartDemand.className = "text-left";
-        
-        // Kolom Serial Number (rata kiri)
-        let cellSerial = newRow.insertCell();
-        cellSerial.textContent = row[reservasiIndexMap[7]] || "";
-        cellSerial.className = "text-left";
-        
-        // Kolom Return To Factory (rata tengah)
-        let cellReturn = newRow.insertCell();
-        cellReturn.textContent = row[reservasiIndexMap[8]] || "";
-        cellReturn.className = "text-center";
-        
-        // Kolom Teknisi Perbaikan (rata kiri)
-        let cellTeknisi = newRow.insertCell();
-        cellTeknisi.textContent = row[reservasiIndexMap[9]] || "";
-        cellTeknisi.className = "text-left";
-        
-        // Kolom Analisa SA (rata kiri)
-        let cellAnalisa = newRow.insertCell();
-        cellAnalisa.textContent = row[reservasiIndexMap[10]] || "";
-        cellAnalisa.className = "text-left";
-        
-        // Kolom Disetujui Pada (rata tengah) dengan format tanggal
-        let cellDisetujui = newRow.insertCell();
-        const tanggalValue = row[reservasiIndexMap[11]] || "";
-        cellDisetujui.textContent = formatDateTime(tanggalValue);
-        cellDisetujui.className = "text-center";
-      });
-
-      document.getElementById("pageInfoReservasi").textContent =
-        `Halaman ${currentReservasiPage} dari ${Math.ceil(filteredReservasi.length / rowsPerPageReservasi)}`;
-
-      document.getElementById("prevReservasi").disabled = currentReservasiPage === 1;
-      document.getElementById("nextReservasi").disabled = end >= filteredReservasi.length;
-    }
-
-    function applyReservasiFilter() {
-      const searchVal = document.getElementById("searchReservasi").value.toLowerCase();
-      const filterTeknisi = document.getElementById("filterTeknisi").value;
-
-      filteredReservasi = reservasiData;
-
-      // Filter berdasarkan Teknisi Perbaikan
-      if (filterTeknisi !== "all") {
-        filteredReservasi = filteredReservasi.filter(r => {
-          const teknisi = r[reservasiIndexMap[9]] || "";
-          return teknisi === filterTeknisi;
-        });
-      }
-
-      // Filter berdasarkan pencarian
-      if (searchVal) {
-        filteredReservasi = filteredReservasi.filter(r => {
-          return (
-            (r[reservasiIndexMap[0]] && r[reservasiIndexMap[0]].toString().toLowerCase().includes(searchVal)) ||
-            (r[reservasiIndexMap[1]] && r[reservasiIndexMap[1]].toString().toLowerCase().includes(searchVal)) ||
-            (r[reservasiIndexMap[2]] && r[reservasiIndexMap[2]].toString().toLowerCase().includes(searchVal))
-          );
-        });
-      }
-
-      currentReservasiPage = 1;
-      renderReservasiTable();
-    }
-
-    function prevReservasiPage() {
-      if (currentReservasiPage > 1) {
-        currentReservasiPage--;
-        renderReservasiTable();
-      }
-    }
-
-    function nextReservasiPage() {
-      if (currentReservasiPage * rowsPerPageReservasi < filteredReservasi.length) {
-        currentReservasiPage++;
-        renderReservasiTable();
-      }
-    }
-
-    function changeRowsPerPageReservasi() {
-      rowsPerPageReservasi = parseInt(document.getElementById("rowsPerPageReservasi").value);
-      currentReservasiPage = 1;
-      renderReservasiTable();
-    }
-
-    // ---- SERVICE CALLS ----
-    let serviceData = [];
-    let serviceIndexMap = [];
-    let filteredService = [];
-    let currentServicePage = 1;
-    let rowsPerPageService = 15;
-
-    function importServiceExcel() {
-      const file = document.getElementById('importService').files[0];
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, {type: 'array'});
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet, {header:1});
-
-        const headers = ["Tanggal Pendaftaran","Nomor Service Call","Jenis Layanan","Jenis Garansi","Tipe Demand","Nomor Seri","Nama Pemilik","Alamat Pemilik","Status Pengerjaan","Nama Teknisi","Tanggal Serah Terima"];
-        const excelHeaders = json[0].map(h => h.toString().trim());
-        serviceIndexMap = headers.map(h => excelHeaders.indexOf(h));
-
-        serviceData = json.slice(1).filter(r => r.length > 0);
-        
-        // Simpan ke localStorage
-        saveToLocalStorage('serviceData', serviceData);
-        
-        filteredService = serviceData;
-        currentServicePage = 1;
-        renderServiceTable();
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    function renderServiceTable() {
-      const tbody = document.getElementById("serviceTable").querySelector("tbody");
-      tbody.innerHTML = "";
-
-      const start = (currentServicePage - 1) * rowsPerPageService;
-      const end = start + rowsPerPageService;
-      const pageData = filteredService.slice(start, end);
-
-      pageData.forEach((row, i) => {
-        let newRow = tbody.insertRow();
-        
-        // Kolom Tanggal Pendaftaran (rata kiri) dengan format tanggal saja
-        let cellTanggal = newRow.insertCell();
-        const tanggalValue = row[serviceIndexMap[0]] || "";
-        cellTanggal.textContent = formatDateOnly(tanggalValue);
-        cellTanggal.className = "text-left";
-        
-        // Kolom Nomor Service Call (rata kiri)
-        let cellNomor = newRow.insertCell();
-        cellNomor.textContent = row[serviceIndexMap[1]] || "";
-        cellNomor.className = "text-left";
-        
-        // Kolom Jenis Layanan (rata kiri)
-        let cellLayanan = newRow.insertCell();
-        cellLayanan.textContent = row[serviceIndexMap[2]] || "";
-        cellLayanan.className = "text-left";
-        
-        // Kolom Jenis Garansi (rata kiri)
-        let cellGaransi = newRow.insertCell();
-        cellGaransi.textContent = row[serviceIndexMap[3]] || "";
-        cellGaransi.className = "text-left";
-        
-        // Kolom Tipe Demand (rata kiri)
-        let cellDemand = newRow.insertCell();
-        cellDemand.textContent = row[serviceIndexMap[4]] || "";
-        cellDemand.className = "text-left";
-        
-        // Kolom Nomor Seri (rata kiri)
-        let cellSeri = newRow.insertCell();
-        cellSeri.textContent = row[serviceIndexMap[5]] || "";
-        cellSeri.className = "text-left";
-        
-        // Kolom Nama Pemilik (rata kiri)
-        let cellPemilik = newRow.insertCell();
-        cellPemilik.textContent = row[serviceIndexMap[6]] || "";
-        cellPemilik.className = "text-left";
-        
-        // Kolom Alamat Pemilik (rata kiri)
-        let cellAlamat = newRow.insertCell();
-        cellAlamat.textContent = row[serviceIndexMap[7]] || "";
-        cellAlamat.className = "text-left";
-        
-        // Kolom Status Pengerjaan (rata kiri)
-        let cellStatus = newRow.insertCell();
-        const statusValue = row[serviceIndexMap[8]] || "";
-        cellStatus.textContent = statusValue;
-        cellStatus.className = "text-left";
-        
-        // Kolom Nama Teknisi (rata kiri)
-        let cellTeknisi = newRow.insertCell();
-        cellTeknisi.textContent = row[serviceIndexMap[9]] || "";
-        cellTeknisi.className = "text-left";
-        
-        // Kolom Tanggal Serah Terima (rata kiri) dengan format tanggal
-        let cellSerah = newRow.insertCell();
-        const serahValue = row[serviceIndexMap[10]] || "";
-        cellSerah.textContent = formatDateTime(serahValue);
-        cellSerah.className = "text-left";
-      });
-
-      document.getElementById("pageInfoService").textContent =
-        `Halaman ${currentServicePage} dari ${Math.ceil(filteredService.length / rowsPerPageService)}`;
-
-      document.getElementById("prevService").disabled = currentServicePage === 1;
-      document.getElementById("nextService").disabled = end >= filteredService.length;
-    }
-
-    function applyServiceFilter() {
-      const searchVal = document.getElementById("searchService").value.toLowerCase();
-      const filterStatus = document.getElementById("filterStatus").value;
-
-      filteredService = serviceData;
-
-      // Filter berdasarkan Status Pengerjaan
-      if (filterStatus !== "all") {
-        filteredService = filteredService.filter(r => {
-          const status = r[serviceIndexMap[8]] || "";
-          return status === filterStatus;
-        });
-      }
-
-      // Filter berdasarkan pencarian
-      if (searchVal) {
-        filteredService = filteredService.filter(r => {
-          return (
-            (r[serviceIndexMap[1]] && r[serviceIndexMap[1]].toString().toLowerCase().includes(searchVal)) ||
-            (r[serviceIndexMap[6]] && r[serviceIndexMap[6]].toString().toLowerCase().includes(searchVal))
-          );
-        });
-      }
-
-      currentServicePage = 1;
-      renderServiceTable();
-    }
-
-    function prevServicePage() {
-      if (currentServicePage > 1) {
-        currentServicePage--;
-        renderServiceTable();
-      }
-    }
-
-    function nextServicePage() {
-      if (currentServicePage * rowsPerPageService < filteredService.length) {
-        currentServicePage++;
-        renderServiceTable();
-      }
-    }
-
-    function changeRowsPerPageService() {
-      rowsPerPageService = parseInt(document.getElementById("rowsPerPageService").value);
-      currentServicePage = 1;
-      renderServiceTable();
-    }
-
-    // load data dari localStorage saat halaman dimuat
-    window.onload = function() {
-      // Load logo
-      const savedLogo = localStorage.getItem("dashboardLogo");
-      if (savedLogo) document.getElementById("logo").src = savedLogo;
-      
-      // Load data dari localStorage
-      masterData = loadFromLocalStorage('masterData');
-      filteredMaster = masterData;
-      updatePartFilter(masterData);
-      renderMasterTable();
-      
-      allData = loadFromLocalStorage('stockData');
-      filteredStock = allData;
-      updateFilterOptions(allData);
-      renderTable();
-      
-      reservasiData = loadFromLocalStorage('reservasiData');
-      filteredReservasi = reservasiData;
-      updateTeknisiFilter(reservasiData);
-      renderReservasiTable();
-      
-      serviceData = loadFromLocalStorage('serviceData');
-      filteredService = serviceData;
-      renderServiceTable();
-    };
-  </script>
 </body>
 </html>
